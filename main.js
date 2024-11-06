@@ -8,6 +8,7 @@ const createWindows = function () {
     webPreferences: {
       preload: path.resolve("preloads/viewport.js"),
     },
+    autoHideMenuBar: true,
   });
 
   viewport.loadFile("./viewport/index.html");
@@ -30,6 +31,10 @@ app.whenReady().then(function () {
 
   ipcMain.on("cmd", (event, cmd) => {
     viewport.webContents.send("cmd", cmd);
+  });
+
+  controller.on("closed", () => {
+    app.quit();
   });
 });
 

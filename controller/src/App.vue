@@ -2,16 +2,22 @@
 import { ref, watch } from "vue";
 const playing = ref(false);
 
-watch(playing, () => {
-  app.cmd({
-    cmd: "start",
-    timestamp: 0,
-  });
+watch(playing, (newstate, oldstate) => {
+  if (newstate) {
+    app.cmd({
+      cmd: "play",
+    });
+  } else {
+    app.cmd({
+      cmd: "pause",
+    });
+  }
 });
 </script>
 
 <template>
-  <button @click="playing = !playing">Spustit</button>
+  <button v-if="playing" @click="playing = !playing">Pozastavit</button>
+  <button v-else @click="playing = !playing">Přehrát</button>
 </template>
 
 <style scoped></style>
