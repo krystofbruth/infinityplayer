@@ -8,6 +8,9 @@ const handleCmd = (cmdobj) => {
     case "pause":
       videoElement.pause();
       break;
+    case "volume":
+      videoElement.volume = cmdobj.value / 100;
+      break;
     default:
       console.error("Command not defined: " + cmdobj.cmd);
       break;
