@@ -1,16 +1,36 @@
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, ipcMain } = require("electron");
+const path = require("path");
 
-const createWindow = function () {
-  const win = new BrowserWindow({
+const createWindows = function () {
+  const viewport = new BrowserWindow({
     width: 800,
     height: 600,
+    webPreferences: {
+      preload: path.resolve("preloads/viewport.js"),
+    },
   });
 
-  win.loadFile("./html/player.html");
+  viewport.loadFile("./viewport/index.html");
+
+  const controller = new BrowserWindow({
+    width: 800,
+    height: 600,
+    webPreferences: {
+      preload: path.resolve("preloads/controller.js"),
+    },
+  });
+
+  controller.loadFile("./controller/dist/index.html");
+
+  return { controller, viewport };
 };
 
 app.whenReady().then(function () {
-  createWindow();
+  const { controller, viewport } = createWindows();
+
+  ipcMain.on("cmd", (event, cmd) => {
+    viewport.webContents.send("cmd", cmd);
+  });
 });
 
 app.on("window-all-closed", function () {
