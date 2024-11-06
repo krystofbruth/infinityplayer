@@ -1,5 +1,15 @@
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("path");
+
+async function handleFileOpen() {
+  const openDialog = await dialog.showOpenDialog();
+  const { canceled, filePaths } = openDialog;
+  if (!canceled) {
+    return filePaths[0];
+  } else {
+    return null;
+  }
+}
 
 const createWindows = function () {
   const viewport = new BrowserWindow({
@@ -32,6 +42,8 @@ app.whenReady().then(function () {
   ipcMain.on("cmd", (event, cmd) => {
     viewport.webContents.send("cmd", cmd);
   });
+
+  ipcMain.handle("openFile", handleFileOpen);
 
   controller.on("closed", () => {
     app.quit();

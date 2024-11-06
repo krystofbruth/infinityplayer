@@ -11,6 +11,13 @@ const handleCmd = (cmdobj) => {
     case "volume":
       videoElement.volume = cmdobj.value / 100;
       break;
+    case "file":
+      videoElement.pause();
+      videoElement.setAttribute("src", cmdobj.value);
+      if (cmdobj.autostart) {
+        videoElement.play();
+      }
+      break;
     default:
       console.error("Command not defined: " + cmdobj.cmd);
       break;
