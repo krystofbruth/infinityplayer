@@ -1,10 +1,12 @@
 <script setup>
 import { ref, watch } from "vue";
+import MediaList from "./components/MediaList.vue";
 const playing = ref(false);
 const volume = ref(100);
-const file = ref(null);
 const autostart = ref(false);
 const repeat = ref(false);
+const medialist = ref([]);
+let endOfList = true;
 
 const handleAdvertisement = (advertisementObj) => {
   switch (advertisementObj.adv) {
@@ -24,31 +26,52 @@ function handleVideoEnd() {
     window.app.cmd({
       cmd: "play",
     });
-  } else {
-    playing.value = false;
-  }
-}
-
-async function handleFileOpen() {
-  const filePath = await window.app.openFile();
-  if (filePath === null) {
-    console.warn("No file selected!");
     return;
   }
 
-  file.value = filePath;
+  handleNextMediaItem();
+
+  if (autostart.value && !endOfList) {
+    playing.value = true;
+    window.app.cmd({
+      cmd: "play",
+    });
+  }
 }
 
-watch(file, (newFile, oldFile) => {
+function handleSkip() {
+  handleNextMediaItem();
+  if (!endOfList) {
+    playing.value = true;
+    window.app.cmd({
+      cmd: "play",
+    });
+  }
+}
+
+function handleNextMediaItem() {
+  medialist.value.shift();
+  playing.value = false;
+
+  if (medialist.value.length === 0) {
+    window.app.cmd({
+      cmd: "file",
+      value: null,
+    });
+    endOfList = true;
+    return;
+  }
+
   window.app.cmd({
     cmd: "file",
-    value: newFile,
-    autostart: autostart.value,
+    value: medialist.value[0],
   });
-});
+}
 
-watch(playing, (newstate, oldstate) => {
-  if (newstate) {
+watch(playing, () => {
+  console.log(playing.value);
+
+  if (playing.value) {
     window.app.cmd({
       cmd: "play",
     });
@@ -65,29 +88,45 @@ watch(volume, () => {
     value: volume.value,
   });
 });
+
+watch(
+  medialist,
+  () => {
+    if (endOfList) {
+      window.app.cmd({
+        cmd: "file",
+        value: medialist.value[0],
+      });
+      endOfList = false;
+    }
+  },
+  { deep: true }
+);
 </script>
 
 <template>
-  <button v-if="playing" @click="playing = !playing">Pozastavit</button>
-  <button v-else @click="playing = !playing">Přehrát</button>
+  <div class="controls">
+    <button v-if="playing" @click="playing = !playing">Pozastavit</button>
+    <button v-else @click="playing = !playing">Přehrát</button>
 
-  <input type="range" v-model="volume" min="0" max="100" />
+    <input type="range" v-model="volume" min="0" max="100" />
 
-  <button @click="handleFileOpen">Choose file</button>
+    <button
+      @click="autostart = !autostart"
+      :class="{ active: autostart, inactive: !autostart }"
+    >
+      Automatic play after new file
+    </button>
 
-  <button
-    @click="autostart = !autostart"
-    :class="{ active: autostart, inactive: !autostart }"
-  >
-    Automatic play after new file
-  </button>
-
-  <button
-    @click="repeat = !repeat"
-    :class="{ active: repeat, inactive: !repeat }"
-  >
-    Repeat
-  </button>
+    <button
+      @click="repeat = !repeat"
+      :class="{ active: repeat, inactive: !repeat }"
+    >
+      Repeat
+    </button>
+    <button @click="handleSkip">Skip</button>
+  </div>
+  <MediaList v-model="medialist" />
 </template>
 
 <style scoped>

@@ -13,10 +13,12 @@ const handleCmd = (cmdobj) => {
       break;
     case "file":
       videoElement.pause();
-      videoElement.setAttribute("src", cmdobj.value);
-      if (cmdobj.autostart) {
-        videoElement.play();
+      if (cmdobj.value === null) {
+        videoElement.removeAttribute("src");
+      } else {
+        videoElement.setAttribute("src", cmdobj.value);
       }
+
       break;
     default:
       console.error("Command not defined: " + cmdobj.cmd);
