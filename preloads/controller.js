@@ -5,4 +5,9 @@ contextBridge.exposeInMainWorld("app", {
     ipcRenderer.send("cmd", cmd);
   },
   openFile: () => ipcRenderer.invoke("openFile"),
+  adv: (handleAdv) => {
+    ipcRenderer.on("adv", (event, adv) => {
+      handleAdv(adv);
+    });
+  },
 });

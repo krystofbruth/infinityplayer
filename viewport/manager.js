@@ -24,4 +24,10 @@ const handleCmd = (cmdobj) => {
   }
 };
 
-app.cmd(handleCmd);
+window.app.cmd(handleCmd);
+
+function advertise(adv) {
+  window.app.adv(adv);
+}
+
+videoElement.addEventListener("ended", () => advertise({ adv: "end" }));

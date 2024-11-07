@@ -43,6 +43,10 @@ app.whenReady().then(function () {
     viewport.webContents.send("cmd", cmd);
   });
 
+  ipcMain.on("adv", (event, adv) => {
+    controller.webContents.send("adv", adv);
+  });
+
   ipcMain.handle("openFile", handleFileOpen);
 
   controller.on("closed", () => {

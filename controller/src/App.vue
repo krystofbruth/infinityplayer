@@ -1,9 +1,33 @@
 <script setup>
 import { ref, watch } from "vue";
 const playing = ref(false);
-const volume = ref(0);
+const volume = ref(100);
 const file = ref(null);
 const autostart = ref(false);
+const repeat = ref(false);
+
+const handleAdvertisement = (advertisementObj) => {
+  switch (advertisementObj.adv) {
+    case "end":
+      handleVideoEnd();
+      break;
+    default:
+      console.error("Advertisement not defined" + advertisement);
+      break;
+  }
+};
+
+window.app.adv(handleAdvertisement);
+
+function handleVideoEnd() {
+  if (repeat.value) {
+    window.app.cmd({
+      cmd: "play",
+    });
+  } else {
+    playing.value = false;
+  }
+}
 
 async function handleFileOpen() {
   const filePath = await window.app.openFile();
@@ -56,6 +80,13 @@ watch(volume, () => {
     :class="{ active: autostart, inactive: !autostart }"
   >
     Automatic play after new file
+  </button>
+
+  <button
+    @click="repeat = !repeat"
+    :class="{ active: repeat, inactive: !repeat }"
+  >
+    Repeat
   </button>
 </template>
 
