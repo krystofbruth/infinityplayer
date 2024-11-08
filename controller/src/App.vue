@@ -69,7 +69,9 @@ function handleNextMediaItem() {
 }
 
 watch(playing, () => {
-  console.log(playing.value);
+  if (endOfList) {
+    playing.value = false;
+  }
 
   if (playing.value) {
     window.app.cmd({
@@ -92,7 +94,12 @@ watch(volume, () => {
 watch(
   medialist,
   () => {
-    if (endOfList) {
+    if (medialist.value.length === 0) {
+      window.app.cmd({
+        cmd: "file",
+        value: null,
+      });
+    } else if (endOfList) {
       window.app.cmd({
         cmd: "file",
         value: medialist.value[0],
@@ -107,7 +114,9 @@ watch(
 <template>
   <div class="controls">
     <button v-if="playing" @click="playing = !playing">Pozastavit</button>
-    <button v-else @click="playing = !playing">Přehrát</button>
+    <button v-else @click="playing = !playing" :class="{ disabled: endOfList }">
+      Přehrát
+    </button>
 
     <input type="range" v-model="volume" min="0" max="100" />
 
@@ -136,5 +145,9 @@ watch(
 
 .inactive {
   background-color: red;
+}
+
+.disabled {
+  cursor: not-allowed;
 }
 </style>
