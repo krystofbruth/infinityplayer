@@ -2,19 +2,19 @@
 const list = defineModel();
 
 async function handleFileOpen() {
-  const filePath = await window.app.openFile();
-  return filePath;
+  const file = await window.app.openFile();
+  return file;
 }
 
 async function handleAddItem() {
-  const newPath = await handleFileOpen();
+  const newMedia = await handleFileOpen();
 
-  if (newPath === null) {
+  if (newMedia === null) {
     console.warn("No file selected!");
     return;
   }
 
-  list.value.push(newPath);
+  list.value.push(newMedia);
 }
 </script>
 
@@ -22,7 +22,7 @@ async function handleAddItem() {
   <div>
     <div class="list">
       <article v-for="item in list">
-        <p>{{ item }}</p>
+        <p>{{ item.filePath }}</p>
       </article>
     </div>
     <button @click="handleAddItem">Add an item</button>

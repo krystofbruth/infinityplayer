@@ -1,11 +1,21 @@
 const { app, BrowserWindow, ipcMain, dialog } = require("electron");
+const ffprobe = require("ffprobe");
+const ffprobeStatic = require("ffprobe-static");
 const path = require("path");
 
 async function handleFileOpen() {
   const openDialog = await dialog.showOpenDialog();
   const { canceled, filePaths } = openDialog;
   if (!canceled) {
-    return filePaths[0];
+    const filePath = filePaths[0];
+
+    try {
+      const metadata = await ffprobe(filePath, { path: ffprobeStatic.path });
+      return { filePath, ...metadata };
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
   } else {
     return null;
   }

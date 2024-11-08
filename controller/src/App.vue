@@ -6,7 +6,9 @@ const volume = ref(100);
 const autostart = ref(false);
 const repeat = ref(false);
 const medialist = ref([]);
-let endOfList = true;
+const timeProgress = ref(0);
+const currentFile = ref(null);
+let currentTimestamp = 0;
 
 const handleAdvertisement = (advertisementObj) => {
   switch (advertisementObj.adv) {
@@ -14,7 +16,7 @@ const handleAdvertisement = (advertisementObj) => {
       handleVideoEnd();
       break;
     default:
-      console.error("Advertisement not defined" + advertisement);
+      console.error("Advertisement not defined " + advertisementObj);
       break;
   }
 };
@@ -31,7 +33,7 @@ function handleVideoEnd() {
 
   handleNextMediaItem();
 
-  if (autostart.value && !endOfList) {
+  if (autostart.value && currentFile.value !== null) {
     playing.value = true;
     window.app.cmd({
       cmd: "play",
@@ -41,7 +43,7 @@ function handleVideoEnd() {
 
 function handleSkip() {
   handleNextMediaItem();
-  if (!endOfList) {
+  if (currentFile.value === null) {
     playing.value = true;
     window.app.cmd({
       cmd: "play",
@@ -58,7 +60,7 @@ function handleNextMediaItem() {
       cmd: "file",
       value: null,
     });
-    endOfList = true;
+    currentFile.value = true;
     return;
   }
 
@@ -69,7 +71,7 @@ function handleNextMediaItem() {
 }
 
 watch(playing, () => {
-  if (endOfList) {
+  if (currentFile.value === null) {
     playing.value = false;
   }
 
@@ -99,12 +101,12 @@ watch(
         cmd: "file",
         value: null,
       });
-    } else if (endOfList) {
+    } else if (currentFile.value === null) {
+      currentFile.value = medialist.value[0];
       window.app.cmd({
         cmd: "file",
-        value: medialist.value[0],
+        value: currentFile.value.filePath,
       });
-      endOfList = false;
     }
   },
   { deep: true }
@@ -134,6 +136,8 @@ watch(
       Repeat
     </button>
     <button @click="handleSkip">Skip</button>
+
+    <input type="range" v-model="timeProgress" min="0" max="100" />
   </div>
   <MediaList v-model="medialist" />
 </template>
