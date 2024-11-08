@@ -10,8 +10,13 @@ async function handleFileOpen() {
     const filePath = filePaths[0];
 
     try {
-      const metadata = await ffprobe(filePath, { path: ffprobeStatic.path });
-      return { filePath, ...metadata };
+      let metadata = await ffprobe(filePath, { path: ffprobeStatic.path });
+
+      metadata = metadata.streams.filter(
+        (stream) => stream.codec_type === "video"
+      );
+
+      return { filePath, ...metadata[0] };
     } catch (err) {
       console.error(err);
       return null;

@@ -18,7 +18,9 @@ const handleCmd = (cmdobj) => {
       } else {
         videoElement.setAttribute("src", cmdobj.value);
       }
-
+      break;
+    case "seek":
+      videoElement.currentTime = cmdobj.value;
       break;
     default:
       console.error("Command not defined: " + cmdobj.cmd);
@@ -33,3 +35,7 @@ function advertise(adv) {
 }
 
 videoElement.addEventListener("ended", () => advertise({ adv: "end" }));
+
+videoElement.addEventListener("timeupdate", () =>
+  advertise({ adv: "timeupdate", value: videoElement.currentTime })
+);

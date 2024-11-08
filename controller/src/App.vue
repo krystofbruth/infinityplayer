@@ -6,14 +6,20 @@ const volume = ref(100);
 const autostart = ref(false);
 const repeat = ref(false);
 const medialist = ref([]);
+const currentTime = ref(0);
 const timeProgress = ref(0);
 const currentFile = ref(null);
-let currentTimestamp = 0;
+let timeInteraction = false;
 
 const handleAdvertisement = (advertisementObj) => {
   switch (advertisementObj.adv) {
     case "end":
       handleVideoEnd();
+      break;
+    case "timeupdate":
+      if (!timeInteraction) {
+        handleTimeUpdate(advertisementObj.value);
+      }
       break;
     default:
       console.error("Advertisement not defined " + advertisementObj);
@@ -22,6 +28,33 @@ const handleAdvertisement = (advertisementObj) => {
 };
 
 window.app.adv(handleAdvertisement);
+
+function handleTimeUpdate(timestamp) {
+  currentTime.value = timestamp;
+  timeProgress.value = (100 * timestamp) / parseInt(currentFile.value.duration);
+}
+
+function handleTimeInteraction() {
+  if (currentFile.value === null) {
+    return;
+  }
+  window.app.cmd({
+    cmd: "pause",
+  });
+  window.addEventListener(
+    "mouseup",
+    () => {
+      timeInteraction = false;
+      if (playing.value) {
+        window.app.cmd({
+          cmd: "play",
+        });
+      }
+    },
+    { once: true }
+  );
+  timeInteraction = true;
+}
 
 function handleVideoEnd() {
   if (repeat.value) {
@@ -43,7 +76,7 @@ function handleVideoEnd() {
 
 function handleSkip() {
   handleNextMediaItem();
-  if (currentFile.value === null) {
+  if (currentFile.value !== null) {
     playing.value = true;
     window.app.cmd({
       cmd: "play",
@@ -54,19 +87,21 @@ function handleSkip() {
 function handleNextMediaItem() {
   medialist.value.shift();
   playing.value = false;
+  timeProgress.value = 0;
 
   if (medialist.value.length === 0) {
     window.app.cmd({
       cmd: "file",
       value: null,
     });
-    currentFile.value = true;
+    currentFile.value = null;
     return;
   }
 
+  currentFile.value = medialist.value[0];
   window.app.cmd({
     cmd: "file",
-    value: medialist.value[0],
+    value: currentFile.value.filePath,
   });
 }
 
@@ -111,6 +146,17 @@ watch(
   },
   { deep: true }
 );
+
+watch(timeProgress, () => {
+  if (timeInteraction) {
+    const newTimestamp =
+      (timeProgress.value * currentFile.value.duration) / 100;
+    window.app.cmd({
+      cmd: "seek",
+      value: newTimestamp,
+    });
+  }
+});
 </script>
 
 <template>
@@ -137,7 +183,21 @@ watch(
     </button>
     <button @click="handleSkip">Skip</button>
 
-    <input type="range" v-model="timeProgress" min="0" max="100" />
+    <input
+      type="range"
+      v-model="timeProgress"
+      @mousedown="handleTimeInteraction"
+      min="0"
+      max="100"
+      :disabled="currentFile === null"
+    />
+    <p v-if="currentFile !== null">
+      {{ Math.round(currentTime / 60) }}:{{ Math.round(currentTime % 60) }} /
+      {{ Math.round(currentFile.duration / 60) }}:{{
+        Math.round(currentFile.duration % 60)
+      }}
+    </p>
+    <p v-else>00:00/00:00</p>
   </div>
   <MediaList v-model="medialist" />
 </template>
