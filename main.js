@@ -8,6 +8,7 @@ async function handleFileOpen() {
   const { canceled, filePaths } = openDialog;
   if (!canceled) {
     const filePath = filePaths[0];
+    const extension = filePath.split(".")[filePath.split(".").length - 1];
 
     try {
       let metadata = await ffprobe(filePath, { path: ffprobeStatic.path });
@@ -16,7 +17,7 @@ async function handleFileOpen() {
         (stream) => stream.codec_type === "video"
       );
 
-      return { filePath, ...metadata[0] };
+      return { filePath, extension, ...metadata[0] };
     } catch (err) {
       console.error(err);
       return null;

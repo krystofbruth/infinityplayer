@@ -1,4 +1,8 @@
 <script setup>
+import {
+  img as imgFormats,
+  video as videoFormats,
+} from "../assets/extensionMappings.js";
 const list = defineModel();
 
 async function handleFileOpen() {
@@ -12,6 +16,15 @@ async function handleAddItem() {
   if (newMedia === null) {
     console.warn("No file selected!");
     return;
+  }
+
+  if (imgFormats.includes(newMedia.extension)) {
+    newMedia.type = "img";
+  } else if (videoFormats.includes(newMedia.extension)) {
+    newMedia.type = "video";
+  } else {
+    console.error("Couldn't autodetect file type, defaulting to video");
+    newMedia.type = "video";
   }
 
   list.value.push(newMedia);

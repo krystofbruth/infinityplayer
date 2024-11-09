@@ -1,4 +1,5 @@
-const videoElement = document.querySelector("#viewport");
+const videoElement = document.querySelector("video.viewport");
+const imgElement = document.querySelector("img.viewport");
 
 const handleCmd = (cmdobj) => {
   switch (cmdobj.cmd) {
@@ -12,11 +13,14 @@ const handleCmd = (cmdobj) => {
       videoElement.volume = cmdobj.value / 100;
       break;
     case "file":
+      console.log(cmdobj);
+
       videoElement.pause();
       if (cmdobj.value === null) {
         videoElement.removeAttribute("src");
+        imgElement.removeAttribute("src");
       } else {
-        videoElement.setAttribute("src", cmdobj.value);
+        handleSrcChange(cmdobj.type, cmdobj.value);
       }
       break;
     case "seek":
@@ -27,6 +31,16 @@ const handleCmd = (cmdobj) => {
       break;
   }
 };
+
+function handleSrcChange(type, src) {
+  if (type === "img") {
+    videoElement.removeAttribute("src");
+    imgElement.setAttribute("src", src);
+  } else if (type === "video" || !type) {
+    imgElement.removeAttribute("src");
+    videoElement.setAttribute("src", src);
+  }
+}
 
 window.app.cmd(handleCmd);
 

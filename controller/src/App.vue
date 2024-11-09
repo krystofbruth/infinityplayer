@@ -99,8 +99,12 @@ function handleNextMediaItem() {
   }
 
   currentFile.value = medialist.value[0];
+  if (!currentFile.value.duration) {
+    currentFile.value.duration = 0;
+  }
   window.app.cmd({
     cmd: "file",
+    type: currentFile.value.type,
     value: currentFile.value.filePath,
   });
 }
@@ -137,11 +141,8 @@ watch(
         value: null,
       });
     } else if (currentFile.value === null) {
-      currentFile.value = medialist.value[0];
-      window.app.cmd({
-        cmd: "file",
-        value: currentFile.value.filePath,
-      });
+      medialist.value.unshift(null);
+      handleNextMediaItem();
     }
   },
   { deep: true }
